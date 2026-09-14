@@ -1,0 +1,2 @@
+# keterlambatan
+log telat

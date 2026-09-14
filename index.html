@@ -5,16 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Piket Keterlambatan SMKNW</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; padding: 15px; margin: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 15px; margin: 0; }
     .card { max-width: 480px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    h2 { text-align: center; color: #1e293b; margin-top: 0; font-size: 1.4rem; }
+    h2 { text-align: center; color: #1e293b; margin-top: 0; }
     .form-group { margin-bottom: 15px; }
-    label { display: block; font-weight: 600; margin-bottom: 6px; color: #475569; font-size: 0.9rem; }
-    select, input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 1rem; background-color: #fff; }
-    button { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; }
-    button:hover { background: #1d4ed8; }
+    label { display: block; font-weight: 600; margin-bottom: 5px; color: #475569; }
+    select, input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+    button { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
     button:disabled { background: #94a3b8; cursor: not-allowed; }
-    .status { text-align: center; margin-top: 15px; font-weight: bold; font-size: 0.95rem; }
+    .status { text-align: center; margin-top: 15px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -54,36 +53,34 @@
 </div>
 
 <script>
-  // URL WEB APP APPS SCRIPT KAMU
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHMwuRUPc_n_Senp3ygrLz_2du7mGPItcrWuVkWcDW3xx1S5VJOxXVIIwiBeGyZJ2uHw/exec";
   
   let masterData = [];
 
-  // Menggunakan JSONP untuk menghindari kendala CORS/Iframe Google
-  function loadDataJSONP() {
-    const script = document.createElement('script');
-    script.src = SCRIPT_URL + "?callback=handleResponse";
-    document.body.appendChild(script);
-  }
-
-  function handleResponse(data) {
-    masterData = data;
-    populateKelas();
-  }
-
+  // Ambil data siswa dari Google Sheets (metode redirect fetch)
   window.onload = function() {
-    loadDataJSONP();
+    fetch(SCRIPT_URL)
+      .then(res => res.json())
+      .then(data => {
+        masterData = data;
+        populateKelas();
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById('kelas').innerHTML = '<option value="">❌ Gagal Memuat Data</option>';
+        document.getElementById('status').innerText = "❌ Gagal terhubung ke Google Sheets.";
+      });
   };
 
   function populateKelas() {
     const kelasSelect = document.getElementById('kelas');
-    const daftarKelas = [...new Set(masterData.map(item => item[1]))].sort();
+    
+    // Kolom B adalah index 1 (Kelas)
+    const daftarKelas = [...new Set(masterData.map(item => item[1]))].filter(Boolean).sort();
     
     kelasSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>';
     daftarKelas.forEach(kelas => {
-      if (kelas) {
-        kelasSelect.innerHTML += `<option value="${kelas}">${kelas}</option>`;
-      }
+      kelasSelect.innerHTML += `<option value="${kelas}">${kelas}</option>`;
     });
   }
 
@@ -97,7 +94,9 @@
       return;
     }
 
+    // Filter siswa berdasarkan kelas (item[1] = Kelas, item[0] = Nama Siswa)
     const siswaFiltered = masterData.filter(item => item[1] === kelasTerpilih);
+    
     namaSelect.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>';
     siswaFiltered.forEach(item => {
       namaSelect.innerHTML += `<option value="${item[0]}">${item[0]}</option>`;

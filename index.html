@@ -4,121 +4,156 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Piket Keterlambatan SMKNW</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; padding: 15px; margin: 0; }
-    .card { max-width: 480px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    h2 { text-align: center; color: #1e293b; margin-top: 0; font-size: 1.4rem; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; font-weight: 600; margin-bottom: 6px; color: #475569; font-size: 0.9rem; }
-    select, input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 1rem; background-color: #fff; }
-    button { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; }
-    button:hover { background: #1d4ed8; }
-    button:disabled { background: #94a3b8; cursor: not-allowed; }
-    .status { text-align: center; margin-top: 15px; font-weight: bold; font-size: 0.95rem; }
+    body {
+      background-color: #f4f6f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .btn-primary {
+      background-color: #2563eb;
+      border: none;
+      padding: 10px;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+    .btn-primary:hover {
+      background-color: #1d4ed8;
+    }
   </style>
 </head>
 <body>
 
-<div class="card">
-  <h2>Piket Keterlambatan SMKNW</h2>
-  <form id="piketForm">
-    <div class="form-group">
-      <label for="kelas">Pilih Kelas</label>
-      <select id="kelas" required onchange="filterSiswa()">
-        <option value="">-- Memuat Data Kelas... --</option>
-      </select>
-    </div>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card p-4">
+        <h3 class="text-center fw-bold mb-4">Piket Keterlambatan SMKNW</h3>
+        
+        <form id="formTerlambat">
+          <!-- Pilih Kelas -->
+          <div class="mb-3">
+            <label for="kelas" class="form-label fw-semibold">Pilih Kelas</label>
+            <select id="kelas" class="form-select" disabled>
+              <option value="">-- Memuat Data Kelas... --</option>
+            </select>
+          </div>
 
-    <div class="form-group">
-      <label for="nama">Pilih Nama Siswa</label>
-      <select id="nama" required disabled>
-        <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
-      </select>
-    </div>
+          <!-- Pilih Nama -->
+          <div class="mb-3">
+            <label for="nama" class="form-label fw-semibold">Pilih Nama Siswa</label>
+            <select id="nama" class="form-select" disabled>
+              <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+            </select>
+          </div>
 
-    <div class="form-group">
-      <label for="alasan">Alasan Keterlambatan</label>
-      <select id="alasan" required>
-        <option value="">-- Pilih Alasan --</option>
-        <option value="Macet di Jalan">Macet di Jalan</option>
-        <option value="Bangun Kesiangan">Bangun Kesiangan</option>
-        <option value="Ban Motor Bocor / Mogok">Ban Motor Bocor / Mogok</option>
-        <option value="Hujan Deras">Hujan Deras</option>
-        <option value="Lainnya">Lainnya</option>
-      </select>
-    </div>
+          <!-- Alasan -->
+          <div class="mb-4">
+            <label for="alasan" class="form-label fw-semibold">Alasan Keterlambatan</label>
+            <select id="alasan" class="form-select" required>
+              <option value="">-- Pilih Alasan --</option>
+              <option value="Bangun Kesiangan">Bangun Kesiangan</option>
+              <option value="Ban Bocor / Kendala Kendaraan">Ban Bocor / Kendala Kendaraan</option>
+              <option value="Macet Di Jalan">Macet Di Jalan</option>
+              <option value="Keperluan Keluarga">Keperluan Keluarga</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
 
-    <button type="submit" id="btnSubmit">Simpan Keterlambatan</button>
-  </form>
-  <div id="status" class="status"></div>
+          <!-- Tombol Submit -->
+          <button type="submit" id="btnSimpan" class="btn btn-primary w-100">Simpan Keterlambatan</button>
+        </form>
+
+        <div id="pesan" class="mt-3 text-center fw-semibold"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHMwuRUPc_n_Senp3ygrLz_2du7mGPItcrWuVkWcDW3xx1S5VJOxXVIIwiBeGyZJ2uHw/exec";
-  
-  let masterData = [];
+  // URL Deployment Web App Apps Script milik Pak Ferry
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHMwuRUPc_n_Senp3ygrLz_2du7mGPItcrWuVkWcDW3xx1S5VJOxXVIIwiBeGyZJ2uHw/exec"; 
 
-  // Ambil data menggunakan JSONP (Bypass blokir CORS/Redirect Browser)
-  function loadDataJSONP() {
-    const script = document.createElement('script');
-    script.src = SCRIPT_URL + "?callback=handleResponse";
-    document.body.appendChild(script);
-  }
+  let dataSiswaGlobal = [];
 
-  // Dipanggil otomatis saat data dari Google Sheets sampai
-  function handleResponse(data) {
-    if (Array.isArray(data)) {
-      masterData = data;
-      populateKelas();
-    } else {
-      document.getElementById('kelas').innerHTML = '<option value="">❌ Gagal Memuat Data</option>';
-      document.getElementById('status').innerText = "❌ Terjadi masalah format data.";
-    }
-  }
-
-  window.onload = function() {
-    loadDataJSONP();
-  };
-
-  function populateKelas() {
-    const kelasSelect = document.getElementById('kelas');
-    // Index 0 = KELAS (Kolom A)
-    const daftarKelas = [...new Set(masterData.map(item => item[0]))].filter(Boolean).sort();
+  // Fungsi Callback untuk JSONP
+  function prosesDataSiswa(response) {
+    const selectKelas = document.getElementById('kelas');
     
-    kelasSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>';
-    daftarKelas.forEach(kelas => {
-      kelasSelect.innerHTML += `<option value="${kelas}">${kelas}</option>`;
-    });
-  }
-
-  function filterSiswa() {
-    const kelasTerpilih = document.getElementById('kelas').value;
-    const namaSelect = document.getElementById('nama');
-    
-    if (!kelasTerpilih) {
-      namaSelect.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
-      namaSelect.disabled = true;
+    if (!response || response.length === 0) {
+      selectKelas.innerHTML = '<option value="">❌ Data Kosong / Gagal Memuat</option>';
       return;
     }
 
-    // Filter berdasarkan Kolom A (Kelas) dan tampilkan Kolom B (Nama Siswa)
-    const siswaFiltered = masterData.filter(item => item[0] === kelasTerpilih);
-    
-    namaSelect.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>';
-    siswaFiltered.forEach(item => {
-      namaSelect.innerHTML += `<option value="${item[1]}">${item[1]}</option>`;
+    dataSiswaGlobal = response;
+
+    // Ambil daftar kelas unik
+    const daftarKelas = [...new Set(response.map(row => row[0]))].filter(Boolean);
+    daftarKelas.sort();
+
+    // Isi dropdown Kelas
+    selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+    daftarKelas.forEach(kelas => {
+      const opt = document.createElement('option');
+      opt.value = kelas;
+      opt.textContent = kelas;
+      selectKelas.appendChild(opt);
     });
-    namaSelect.disabled = false;
+
+    selectKelas.disabled = false;
   }
 
-  document.getElementById('piketForm').addEventListener('submit', function(e) {
+  // Panggil data via JSONP (Menghindari Masalah CORS)
+  function muatData() {
+    const script = document.createElement('script');
+    script.src = SCRIPT_URL + "?callback=prosesDataSiswa";
+    script.onerror = function() {
+      document.getElementById('kelas').innerHTML = '<option value="">❌ Gagal Memuat Data</option>';
+    };
+    document.body.appendChild(script);
+  }
+
+  // Event saat Pilih Kelas berubah
+  document.getElementById('kelas').addEventListener('change', function() {
+    const kelasTerpilih = this.value;
+    const selectNama = document.getElementById('nama');
+
+    if (!kelasTerpilih) {
+      selectNama.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
+      selectNama.disabled = true;
+      return;
+    }
+
+    // Filter nama berdasarkan kelas
+    const siswaFilter = dataSiswaGlobal
+      .filter(row => row[0] === kelasTerpilih)
+      .map(row => row[1])
+      .filter(Boolean);
+
+    siswaFilter.sort();
+
+    selectNama.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>';
+    siswaFilter.forEach(nama => {
+      const opt = document.createElement('option');
+      opt.value = nama;
+      opt.textContent = nama;
+      selectNama.appendChild(opt);
+    });
+
+    selectNama.disabled = false;
+  });
+
+  // Submit Form
+  document.getElementById('formTerlambat').addEventListener('submit', function(e) {
     e.preventDefault();
-    const btn = document.getElementById('btnSubmit');
-    const status = document.getElementById('status');
-    
-    btn.disabled = true;
-    status.style.color = "#2563eb";
-    status.innerText = "⏳ Menyimpan ke Google Sheets...";
+
+    const btn = document.getElementById('btnSimpan');
+    const pesan = document.getElementById('pesan');
 
     const payload = {
       waktu: new Date().toLocaleString('id-ID'),
@@ -127,23 +162,35 @@
       alasan: document.getElementById('alasan').value
     };
 
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+    pesan.textContent = '';
+
     fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
-    }).then(() => {
-      status.style.color = "#16a34a";
-      status.innerText = "✅ Data Berhasil Disimpan!";
-      document.getElementById('piketForm').reset();
+    })
+    .then(() => {
+      pesan.style.color = 'green';
+      pesan.textContent = '✅ Data Keterlambatan Berhasil Disimpan!';
+      document.getElementById('formTerlambat').reset();
+      document.getElementById('nama').innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
       document.getElementById('nama').disabled = true;
+    })
+    .catch(err => {
+      pesan.style.color = 'red';
+      pesan.textContent = '❌ Gagal menyimpan data: ' + err;
+    })
+    .finally(() => {
       btn.disabled = false;
-    }).catch(() => {
-      status.style.color = "#dc2626";
-      status.innerText = "❌ Gagal Menyimpan.";
-      btn.disabled = false;
+      btn.textContent = 'Simpan Keterlambatan';
     });
   });
+
+  // Jalankan pemanggilan data saat halaman selesai di-load
+  window.onload = muatData;
 </script>
 
 </body>

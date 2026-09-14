@@ -10,7 +10,7 @@
     h2 { text-align: center; color: #1e293b; margin-top: 0; }
     .form-group { margin-bottom: 15px; }
     label { display: block; font-weight: 600; margin-bottom: 5px; color: #475569; }
-    select, input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+    select, input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 1rem; background-color: #fff; }
     button { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
     button:disabled { background: #94a3b8; cursor: not-allowed; }
     .status { text-align: center; margin-top: 15px; font-weight: bold; }
@@ -57,7 +57,6 @@
   
   let masterData = [];
 
-  // Ambil data siswa dari Google Sheets (metode redirect fetch)
   window.onload = function() {
     fetch(SCRIPT_URL)
       .then(res => res.json())
@@ -75,8 +74,8 @@
   function populateKelas() {
     const kelasSelect = document.getElementById('kelas');
     
-    // Kolom B adalah index 1 (Kelas)
-    const daftarKelas = [...new Set(masterData.map(item => item[1]))].filter(Boolean).sort();
+    // Kolom A (Index 0) = KELAS
+    const daftarKelas = [...new Set(masterData.map(item => item[0]))].filter(Boolean).sort();
     
     kelasSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>';
     daftarKelas.forEach(kelas => {
@@ -94,12 +93,12 @@
       return;
     }
 
-    // Filter siswa berdasarkan kelas (item[1] = Kelas, item[0] = Nama Siswa)
-    const siswaFiltered = masterData.filter(item => item[1] === kelasTerpilih);
+    // Filter berdasarkan Kolom A (Kelas, index 0) dan tampilkan Kolom B (Nama Siswa, index 1)
+    const siswaFiltered = masterData.filter(item => item[0] === kelasTerpilih);
     
     namaSelect.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>';
     siswaFiltered.forEach(item => {
-      namaSelect.innerHTML += `<option value="${item[0]}">${item[0]}</option>`;
+      namaSelect.innerHTML += `<option value="${item[1]}">${item[1]}</option>`;
     });
     namaSelect.disabled = false;
   }

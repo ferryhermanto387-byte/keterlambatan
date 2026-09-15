@@ -56,36 +56,33 @@
 </div>
 
 <script>
-  // URL WEB APP KAMU YG BARU
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwa2so4-kkluKmMdbgnB7z2yVPk84T2LDD_mOqY6r-odiqKJfRSH38DImmfC4UK4yyNgA/exec"; 
 
   let dataSiswaGlobal = [];
 
-  // Fungsi buat nerima data dari GAS pakai JSONP
-  function prosesDataSiswa(response) {
+  // Muat data kelas + nama dari GAS pakai fetch
+  async function muatData() {
     const selectKelas = document.getElementById('kelas');
-    if (!response || response.length === 0 || response[0] === "error") {
-      selectKelas.innerHTML = '<option value="">❌ Gagal Memuat Data</option>';
-      return;
-    }
-    dataSiswaGlobal = response;
-    const daftarKelas = [...new Set(response.map(row => row[0]))].filter(Boolean).sort();
-    selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
-    daftarKelas.forEach(kelas => {
-      const opt = document.createElement('option');
-      opt.value = kelas;
-      opt.textContent = kelas;
-      selectKelas.appendChild(opt);
-    });
-    selectKelas.disabled = false;
-  }
+    try {
+      const res = await fetch(SCRIPT_URL); // <-- GAK PAKAI CALLBACK LAGI
+      const response = await res.json();
+      
+      if (!response || response.length === 0) throw new Error("Data kosong");
 
-  // Muat data kelas + nama dari GAS
-  function muatData() {
-    const script = document.createElement('script');
-    script.src = SCRIPT_URL + "?callback=prosesDataSiswa";
-    script.onerror = () => { document.getElementById('kelas').innerHTML = '<option value="">❌ Gagal Memuat Data</option>'; };
-    document.body.appendChild(script);
+      dataSiswaGlobal = response;
+      const daftarKelas = [...new Set(response.map(row => row[0]))].filter(Boolean).sort();
+      selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+      daftarKelas.forEach(kelas => {
+        const opt = document.createElement('option');
+        opt.value = kelas;
+        opt.textContent = kelas;
+        selectKelas.appendChild(opt);
+      });
+      selectKelas.disabled = false;
+    } catch (err) {
+      selectKelas.innerHTML = '<option value="">❌ Gagal Memuat Data</option>';
+      console.error(err);
+    }
   }
 
   // Kalau kelas diganti, isi nama otomatis
@@ -123,26 +120,24 @@
     btn.textContent = 'Menyimpan...';
     pesan.textContent = '';
 
-    // PENTING: pakai mode no-cors karena GAS gak support setHeader
     fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors', 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-   .then(() => {
-      // Karena no-cors kita gak bisa baca response, langsung anggap sukses
+  .then(() => {
       pesan.style.color = 'green';
       pesan.textContent = '✅ Data Keterlambatan Berhasil Disimpan!';
       document.getElementById('formTerlambat').reset();
       document.getElementById('nama').innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
       document.getElementById('nama').disabled = true;
     })
-   .catch(err => {
+  .catch(err => {
       pesan.style.color = 'red';
       pesan.textContent = '❌ Gagal menyimpan data: ' + err;
     })
-   .finally(() => {
+  .finally(() => {
       btn.disabled = false;
       btn.textContent = 'Simpan Keterlambatan';
     });
